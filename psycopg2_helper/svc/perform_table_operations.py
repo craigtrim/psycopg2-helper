@@ -3,7 +3,7 @@
 """ Perform Common Postgres Table Operations """
 
 
-from typing import Any
+from typing import List
 from typing import Optional
 
 from psycopg2 import connect
@@ -28,14 +28,7 @@ class PerformTableOperations(BaseObject):
             craigtrim@gmail.com
         """
         BaseObject.__init__(self, __name__)
-        print(type(conn))
         self.conn = conn
-
-    def close(self):
-        self.conn.commit()
-        cursor = self.conn.cursor()
-        self.conn.close()
-        cursor.close()
 
     def create_table(self,
                      create_table_ddl: str):
@@ -105,8 +98,30 @@ class PerformTableOperations(BaseObject):
             self.conn.rollback()
             raise ValueError(sql)
 
+    def delete_schema(self,
+                      name: str) -> None:
+        """ Delete a Schema
+
+        Args:
+            name (str): Schema Name
+
+        Raises:
+            ValueError: Delete Schema Failure
+        """
+        sql = f"DROP SCHEMA IF EXISTS {name}"
+
+        try:
+
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql)
+                self.conn.commit()
+
+        except Exception as e:
+            self.conn.rollback()
+            raise ValueError(sql)
+
     def get_table_names(self,
-                        schema: str):
+                        schema: str) -> List[str]:
         """ Get Table Names
 
         Args:
@@ -130,4 +145,4 @@ class PerformTableOperations(BaseObject):
             self.conn.rollback()
             raise ValueError(sql)
 
-        return values
+        return sorted(set(values), key=len, reverse=True)

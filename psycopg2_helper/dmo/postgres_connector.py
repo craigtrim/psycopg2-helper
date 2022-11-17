@@ -70,3 +70,9 @@ class PostgresConnector(BaseObject):
             password=get_password(),
             host=get_host(),
             dbname=get_database_name())
+
+    def close(self):
+        self.conn.commit()
+        cursor = self.conn.cursor()
+        self.conn.close()
+        cursor.close()

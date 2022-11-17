@@ -20,7 +20,11 @@ class PostgresHelper(BaseObject):
             craigtrim@gmail.com
         """
         BaseObject.__init__(self, __name__)
-        self.conn = PostgresConnector().conn
+        self._dmo_connector = PostgresConnector()
+        self.conn = self._dmo_connector.conn
+
+    def close(self) -> None:
+        self._dmo_connector.close()
 
     def ddl(self) -> PerformTableOperations:
         return PerformTableOperations(self.conn)
