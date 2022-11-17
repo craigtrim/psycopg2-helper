@@ -7,10 +7,15 @@ from baseblock import BaseObject
 
 from psycopg2_helper.dmo import PostgresConnector
 from psycopg2_helper.svc import PerformTableOperations
+from psycopg2_helper.svc import PerformRuntimeCrud
 
 
 class PostgresHelper(BaseObject):
-    """ Postgres Helper API """
+    """ Postgres Helper API 
+
+    Reference:
+        https://github.com/iamtekson/postgres-helper/blob/main/pg/pg.py
+    """
 
     def __init__(self):
         """ Change Log
@@ -28,3 +33,6 @@ class PostgresHelper(BaseObject):
 
     def ddl(self) -> PerformTableOperations:
         return PerformTableOperations(self.conn)
+
+    def crud(self) -> PerformRuntimeCrud:
+        return PerformRuntimeCrud(self.conn)
