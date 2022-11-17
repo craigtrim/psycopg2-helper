@@ -1,6 +1,6 @@
-from pprint import pprint
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 
-from baseblock import Enforcer
 
 from psycopg2_helper.dmo import PostgresConnector
 

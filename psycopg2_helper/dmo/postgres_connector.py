@@ -11,8 +11,6 @@ from baseblock import EnvIO
 from baseblock import CryptoBase
 from baseblock import BaseObject
 
-from psycopg2_helper.dmo import PostgresConnector
-
 
 class PostgresConnector(BaseObject):
     """ Connect to the Postgres instance  """
@@ -67,9 +65,8 @@ class PostgresConnector(BaseObject):
                 return database_name
             return EnvIO.str_or_default('POSTGRES_DATABASE_NAME', None)
 
-        self.conn = PostgresConnector(
+        self.conn = connect(
             user=get_user(),
             password=get_password(),
             host=get_host(),
-            port=get_port(),
-            database_name=get_database_name())
+            dbname=get_database_name())

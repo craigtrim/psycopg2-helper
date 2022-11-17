@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+""" Perform Common Postgres Table Operations """
+
+
+from typing import Any
+from typing import Optional
+
+from psycopg2 import connect
+from psycopg2.extensions import connection
+
+from baseblock import EnvIO
+from baseblock import CryptoBase
+from baseblock import BaseObject
+
+from psycopg2_helper.dmo import PostgresConnector
+
+
+class PerformTableOperations(BaseObject):
+    """ Perform Common Postgres Table Operations """
+
+    def __init__(self,
+                 conn: connection):
+        """ Change Log
+
+        Created:
+            16-Nov-2022
+            craigtrim@gmail.com
+        """
+        BaseObject.__init__(self, __name__)
+        print(type(conn))
+        self.conn = conn
+
+    def close(self):
+        self.conn.commit()
+        cursor = self.conn.cursor()
+        self.conn.close()
+        cursor.close()
+
+    def create_table(self,
+                     create_table_ddl: str):
+        """ Create a Table
+
+        Args:
+            create_table_ddl (str): Fully Qualified DDL
+                Sample Input:
+                    "CREATE TABLE test (id serial PRIMARY KEY, num integer, data varchar);"
+        Raises:
+            ValueError: Create Table Failure
+        """
+        cur = self.conn.cursor()
+        try:
+            cur.execute(create_table_ddl)
+        except:
+            raise ValueError("Create Table Failure")
+
+        self.conn.commit()
+
+    def delete_table(self,
+                     name: str,
+                     schema: str) -> None:
+        """ Delete (Drop) a Table
+
+        Args:
+            name (str): Table Name
+            name (str): Schema Name
+
+        Returns:
+            str: status message
+
+        Raises:
+            ValueError: Delete Table Failure
+        """
+        sql = f"DROP TABLE IF EXISTS {schema}.{name} CASCADE;"
+
+        try:
+
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql)
+                self.conn.commit()
+
+        except Exception as e:
+            self.conn.rollback()
+            raise ValueError(sql)
+
+    def create_schema(self,
+                      name: str) -> None:
+        """ Create a Schema
+
+        Args:
+            name (str): Schema Name
+
+        Raises:
+            ValueError: Create Schema Failure
+        """
+        sql = f"CREATE SCHEMA IF NOT EXISTS {name}"
+
+        try:
+
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql)
+                self.conn.commit()
+
+        except Exception as e:
+            self.conn.rollback()
+            raise ValueError(sql)
+
+    def get_table_names(self,
+                        schema: str):
+        """ Get Table Names
+
+        Args:
+            name (str): Schema Name
+
+        Raises:
+            ValueError: Table Name Retrieval Failure
+        """
+        sql = f"SELECT table_name FROM information_schema.tables WHERE table_schema='{schema}'"
+
+        values = []
+        try:
+            with self.conn.cursor() as cursor:
+
+                cursor.execute(sql)
+                rows = cursor.fetchall()
+                for tup in rows:
+                    values += [tup[0]]
+
+        except Exception:
+            self.conn.rollback()
+            raise ValueError(sql)
+
+        return values

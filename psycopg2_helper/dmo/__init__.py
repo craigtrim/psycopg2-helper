@@ -1,1 +1,1 @@
-from .postgres_connectorbak import PostgresConnector
+from .postgres_connector import PostgresConnector
