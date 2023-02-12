@@ -37,6 +37,11 @@ freeze:
 	poetry run pip freeze > requirements.txt
 	poetry run python -m pip install --upgrade pip
 
+integration:
+	poetry run python drivers/postgres_connector_driver.py
+	poetry run python drivers/postgres_helper_1_driver.py
+	poetry run python drivers/postgres_helper_2_driver.py
+
 all:
 	make build
 	make linters

@@ -3,19 +3,27 @@
 
 
 import os
-from psycopg2 import sql
+from functools import partial
 
 from psycopg2_helper.bp import PostgresHelper
 
 
 def test_api():
 
+    schema_name = "test_schema"
+    table_name = "test21"
+
     CREATE_TABLE_DDL = """
-        CREATE TABLE IF NOT EXISTS test_schema.test10 (
-            num1 integer, 
-            num2 integer
+        CREATE TABLE IF NOT EXISTS schemaname.tablename (
+            source_user varchar(32), 
+            target_user varchar(32),
+            thread_ts varchar(32),
+            channel varchar(32)            
         );
     """
+
+    CREATE_TABLE_DDL = CREATE_TABLE_DDL.replace('schemaname', schema_name)
+    CREATE_TABLE_DDL = CREATE_TABLE_DDL.replace('tablename', table_name)
 
     os.environ['POSTGRES_HOST'] = 'localhost'
 
@@ -28,18 +36,25 @@ def test_api():
     crud_ops = api.crud()
     assert crud_ops
 
-    schema_name = "test_schema"
-    table_name = "test10"
-
     table_ops.create_schema(schema_name)
 
     table_ops.create_table(CREATE_TABLE_DDL)
-    table_ops.get_table_names(schema_name) == ['test10']
+    assert table_ops.get_table_names(schema_name) == [table_name]
+
+    insert_data = partial(
+        crud_ops.insert,
+        schema_name=schema_name,
+        table_name=table_name,
+        column_names=[
+            'source_user',
+            'target_user',
+            'thread_ts',
+            'channel'
+        ])
 
     for i in range(0, 100):
-        crud_ops.insert(schema_name=schema_name,
-                        table_name=table_name,
-                        values=[i, i + 100])
+        insert_data(column_values=["iceberg", "student",
+                    "12323233.2323", "test-23020202"])
 
     print(crud_ops.read(f"SELECT * FROM {schema_name}.{table_name}"))
 

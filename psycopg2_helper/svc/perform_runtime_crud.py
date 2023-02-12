@@ -3,6 +3,8 @@
 """ Perform Common Runtime CRUD Operations """
 
 
+from typing import List
+
 from psycopg2.extensions import connection
 
 from baseblock import BaseObject
@@ -56,7 +58,8 @@ class PerformRuntimeCrud(BaseObject):
     def insert(self,
                schema_name: str,
                table_name: str,
-               values: list) -> None:
+               column_names: List[str],
+               column_values: List[str]) -> None:
         """ Insert Data
 
         Args:
@@ -68,16 +71,22 @@ class PerformRuntimeCrud(BaseObject):
             ValueError: _description_
         """
 
-        values = f"({', '.join([str(x) for x in values])})"
-        createsql = f"INSERT INTO {schema_name}.{table_name} VALUES #values"
-        createsql = createsql.replace('#values', values)
+        def tostr(values: List[str]) -> str:
+            return f"({', '.join([x for x in values])})"
+
+        def todqots(values: List[str]) -> str:
+            return f"({', '.join(['%s' for x in values])})"
+
+        insert_query = f"INSERT INTO {schema_name}.{table_name} #names VALUES #values"
+        insert_query = insert_query.replace('#names', tostr(column_names))
+        insert_query = insert_query.replace('#values', todqots(column_values))
 
         try:
 
             with self.conn.cursor() as cursor:
-                cursor.execute(createsql)
+                cursor.execute(insert_query, column_values)
                 self.conn.commit()
 
         except Exception as err:
             self.logger.error(err)
-            raise ValueError(createsql)
+            raise ValueError(insert_query)
