@@ -26,8 +26,9 @@ test:
 
 build:
 	make install
-	make test
 	poetry build
+#	no unit test cases currently defined ...
+#	make test
 
 linters:
 	poetry run pre-commit run --all-files
