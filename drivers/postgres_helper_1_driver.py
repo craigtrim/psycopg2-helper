@@ -9,12 +9,12 @@ from psycopg2_helper.bp import PostgresHelper
 
 def test_api():
 
-    schema_name = "test_schema"
-    table_name = "test10"
+    schema_name = 'test_schema'
+    table_name = 'test10'
 
     CREATE_TABLE_DDL = """
         CREATE TABLE IF NOT EXISTS schemaname.tablename (
-            num1 integer, 
+            num1 integer,
             num2 integer
         );
     """
@@ -27,19 +27,16 @@ def test_api():
     api = PostgresHelper()
     assert api
 
-    table_ops = api.ddl()
-    assert table_ops
+    assert api.ddl
+    assert api.crud
 
-    crud_ops = api.crud()
-    assert crud_ops
+    api.ddl.create_schema(schema_name)
 
-    table_ops.create_schema(schema_name)
-
-    table_ops.create_table(CREATE_TABLE_DDL)
-    assert table_ops.get_table_names(schema_name) == [table_name]
+    api.ddl.create_table(CREATE_TABLE_DDL)
+    assert table_name in api.ddl.get_table_names(schema_name)
 
     insert_data = partial(
-        crud_ops.insert,
+        api.crud.insert,
         schema_name=schema_name,
         table_name=table_name,
         column_names=[
@@ -50,13 +47,13 @@ def test_api():
     for i in range(0, 100):
         insert_data(column_values=[i, i + 100])
 
-    print(crud_ops.read(f"SELECT * FROM {schema_name}.{table_name}"))
+    print(api.crud.read(f'SELECT * FROM {schema_name}.{table_name}'))
 
-    for table_name in table_ops.get_table_names(schema_name):
-        table_ops.delete_table(name=table_name, schema=schema_name)
+    for table_name in api.ddl.get_table_names(schema_name):
+        api.ddl.delete_table(name=table_name, schema=schema_name)
 
-    table_ops.get_table_names(schema_name) == []
-    table_ops.delete_schema(schema_name)
+    api.ddl.get_table_names(schema_name) == []
+    api.ddl.delete_schema(schema_name)
 
     api.close()
     del os.environ['POSTGRES_HOST']
@@ -71,5 +68,5 @@ def main():
     wrapper.deconstruct_env()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

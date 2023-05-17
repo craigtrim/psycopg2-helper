@@ -11,7 +11,7 @@ from psycopg2_helper.svc import PerformRuntimeCrud
 
 
 class PostgresHelper(BaseObject):
-    """ Postgres Helper API 
+    """ Postgres Helper API
 
     Reference:
         https://github.com/iamtekson/postgres-helper/blob/main/pg/pg.py
@@ -25,14 +25,16 @@ class PostgresHelper(BaseObject):
             craigtrim@gmail.com
         """
         BaseObject.__init__(self, __name__)
-        self._dmo_connector = PostgresConnector()
-        self.conn = self._dmo_connector.conn
+        self._postgres_connector = PostgresConnector()
+        self.conn = self._postgres_connector.conn
 
     def close(self) -> None:
-        self._dmo_connector.close()
+        self._postgres_connector.close()
 
+    @property
     def ddl(self) -> PerformTableOperations:
         return PerformTableOperations(self.conn)
 
+    @property
     def crud(self) -> PerformRuntimeCrud:
         return PerformRuntimeCrud(self.conn)

@@ -20,6 +20,10 @@ class PerformRuntimeCrud(BaseObject):
         Created:
             16-Nov-2022
             craigtrim@gmail.com
+        Updated:
+            16-May-2023
+            craigtrim@gmail.com
+            *   make exception handling more consistent
         """
         BaseObject.__init__(self, __name__)
         self.conn = conn
@@ -37,22 +41,30 @@ class PerformRuntimeCrud(BaseObject):
                 for row in rows:
                     results.append(row)
 
-        except Exception as err:
-            self.logger.error(err)
+        except Exception as e:
+            self.logger.error(e)
             raise ValueError(sql)
 
         return results
 
     def delete(self,
                sql: str, *args) -> None:
+        """ Delete Data
+
+        Args:
+            sql (str): a SQL statement
+
+        Raises:
+            ValueError: on any exception
+        """
         try:
 
             with self.conn.cursor() as cursor:
                 cursor.execute(sql, list(args))
                 self.conn.commit()
 
-        except Exception as err:
-            self.logger.error(err)
+        except Exception as e:
+            self.logger.error(e)
             raise ValueError(sql)
 
     def insert(self,
@@ -65,10 +77,11 @@ class PerformRuntimeCrud(BaseObject):
         Args:
             schema_name (str): the schema name
             table_name (str): the table name
-            args (*): any values to insert
+            column_names (List[str]): column names for insertion
+            column_values (List[str]): column values for insertion
 
         Raises:
-            ValueError: _description_
+            ValueError: on any exception
         """
 
         def tostr(values: List[str]) -> str:
@@ -77,7 +90,7 @@ class PerformRuntimeCrud(BaseObject):
         def todqots(values: List[str]) -> str:
             return f"({', '.join(['%s' for x in values])})"
 
-        insert_query = f"INSERT INTO {schema_name}.{table_name} #names VALUES #values"
+        insert_query = f'INSERT INTO {schema_name}.{table_name} #names VALUES #values'
         insert_query = insert_query.replace('#names', tostr(column_names))
         insert_query = insert_query.replace('#values', todqots(column_values))
 
@@ -87,6 +100,6 @@ class PerformRuntimeCrud(BaseObject):
                 cursor.execute(insert_query, column_values)
                 self.conn.commit()
 
-        except Exception as err:
-            self.logger.error(err)
+        except Exception as e:
+            self.logger.error(e)
             raise ValueError(insert_query)

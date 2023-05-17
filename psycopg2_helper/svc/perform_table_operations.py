@@ -20,6 +20,10 @@ class PerformTableOperations(BaseObject):
         Created:
             16-Nov-2022
             craigtrim@gmail.com
+        Updated:
+            16-May-2023
+            craigtrim@gmail.com
+            *   make exception handling more consistent
         """
         BaseObject.__init__(self, __name__)
         self.conn = conn
@@ -37,9 +41,12 @@ class PerformTableOperations(BaseObject):
         """
         cur = self.conn.cursor()
         try:
+
             cur.execute(create_table_ddl)
-        except:
-            raise ValueError("Create Table Failure")
+
+        except Exception as e:
+            self.logger.error(e)
+            raise ValueError('Create Table Failure')
 
         self.conn.commit()
 
@@ -58,7 +65,7 @@ class PerformTableOperations(BaseObject):
         Raises:
             ValueError: Delete Table Failure
         """
-        sql = f"DROP TABLE IF EXISTS {schema}.{name} CASCADE;"
+        sql = f'DROP TABLE IF EXISTS {schema}.{name} CASCADE;'
 
         try:
 
@@ -68,6 +75,7 @@ class PerformTableOperations(BaseObject):
 
         except Exception as e:
             self.conn.rollback()
+            self.logger.error(e)
             raise ValueError(sql)
 
     def create_schema(self,
@@ -80,7 +88,7 @@ class PerformTableOperations(BaseObject):
         Raises:
             ValueError: Create Schema Failure
         """
-        sql = f"CREATE SCHEMA IF NOT EXISTS {name}"
+        sql = f'CREATE SCHEMA IF NOT EXISTS {name}'
 
         try:
 
@@ -90,6 +98,7 @@ class PerformTableOperations(BaseObject):
 
         except Exception as e:
             self.conn.rollback()
+            self.logger.error(e)
             raise ValueError(sql)
 
     def delete_schema(self,
@@ -102,7 +111,7 @@ class PerformTableOperations(BaseObject):
         Raises:
             ValueError: Delete Schema Failure
         """
-        sql = f"DROP SCHEMA IF EXISTS {name}"
+        sql = f'DROP SCHEMA IF EXISTS {name}'
 
         try:
 
@@ -112,6 +121,7 @@ class PerformTableOperations(BaseObject):
 
         except Exception as e:
             self.conn.rollback()
+            self.logger.error(e)
             raise ValueError(sql)
 
     def get_table_names(self,
@@ -135,8 +145,9 @@ class PerformTableOperations(BaseObject):
                 for tup in rows:
                     values += [tup[0]]
 
-        except Exception:
+        except Exception as e:
             self.conn.rollback()
+            self.logger.error(e)
             raise ValueError(sql)
 
         return sorted(set(values), key=len, reverse=True)
